@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Your Daily Quest history and exam results.">
+  <title>Form — Records</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/records.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="site-header">
+      <a class="brand" href="main.html" aria-label="Form dashboard">
+        <span class="brand-mark" aria-hidden="true">F</span><span>FORM</span>
+      </a>
+      <nav class="desktop-nav" aria-label="Main navigation">
+        <a href="main.html">Today</a>
+        <a href="profile.html">Profile</a>
+        <a href="manage.html" data-master-only hidden>Manage</a>
+        <a href="material.html" data-material-access hidden>Material</a>
+      </nav>
+      <button class="avatar-button" id="profile-menu-button" aria-label="Open account menu" aria-expanded="false">
+        <span id="header-initial"></span>
+      </button>
+      <div class="account-menu" id="account-menu" hidden>
+        <p id="menu-username">@student</p>
+        <a href="profile.html">View profile</a>
+        <button id="logout-button" type="button">Log out</button>
+      </div>
+    </header>
+
+    <p id="records-access" class="manage-access-status" role="status">Checking access…</p>
+    <main id="records-page" class="manage-page" hidden>
+      <header class="manage-heading"><p class="eyebrow">YOUR LEARNING HISTORY</p><h1>Records.</h1><p>Your practice, your progress.</p></header>
+      <div class="records-tabs" role="group" aria-label="Choose record type"><button id="tab-quests" class="is-active" type="button" aria-pressed="true">Daily Quest</button><button id="tab-exams" type="button" aria-pressed="false">Exams</button></div>
+      <section id="quest-history" aria-labelledby="history-title">
+        <div class="record-toolbar"><div><p class="eyebrow">DAILY QUEST HISTORY</p><h2 id="history-title"></h2></div><div class="record-week-controls"><button id="history-prev" class="button button-outline" aria-label="Previous week">&lt;</button><button id="history-current" class="button button-outline">This week</button><button id="history-next" class="button button-outline" aria-label="Next week">&gt;</button></div></div>
+        <p class="field-hint record-legend">Open a day to review questions, your submitted answers and your teacher’s marks. Dates use Thailand time.</p>
+        <p id="history-status" class="management-status" role="status"></p><button id="history-retry" class="button button-outline" hidden>Retry history</button>
+        <div id="history-days" class="history-days"></div>
+      </section>
+      <section id="exam-history" aria-labelledby="exam-history-title" hidden>
+        <h2 id="exam-history-title">Exam records</h2><p class="field-hint">Open an exam for your question-by-question marks, the paper and class statistics.</p>
+        <p id="history-exam-status" class="management-status" role="status"></p><button id="history-exam-retry" class="button button-outline" hidden>Retry exams</button><div id="history-exams" class="history-exams"></div>
+      </section>
+    </main>
+    <dialog id="history-dialog" class="record-dialog" aria-labelledby="history-dialog-title"><header class="record-dialog-header"><div><p id="history-dialog-label" class="eyebrow"></p><h2 id="history-dialog-title"></h2></div><button id="history-close" class="button button-outline">Close</button></header><p id="history-dialog-status" class="management-status" role="status"></p><p id="history-math-status" class="field-hint" role="status"></p><div id="history-dialog-content"></div></dialog>
+    <nav class="mobile-nav" aria-label="Mobile navigation"><a href="main.html"><span aria-hidden="true">○</span>Today</a><a href="profile.html"><span aria-hidden="true">○</span>Profile</a><a href="manage.html" data-master-only hidden><span aria-hidden="true">○</span>Manage</a><a href="material.html" data-material-access hidden><span aria-hidden="true">○</span>Material</a></nav>
+  </div>
+  <script type="module" src="js/records.js"></script>
+</body>
+</html>

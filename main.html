@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Your focused student learning dashboard.">
+  <title>Form — Today</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="site-header">
+      <a class="brand" href="main.html" aria-label="Form dashboard">
+        <span class="brand-mark" aria-hidden="true">F</span><span>FORM</span>
+      </a>
+      <nav class="desktop-nav" aria-label="Main navigation">
+        <a class="is-active" href="main.html">Today</a>
+        <a href="profile.html">Profile</a>
+        <a href="manage.html" data-master-only hidden>Manage</a>
+        <a href="material.html" data-material-access hidden>Material</a>
+      </nav>
+      <button class="avatar-button" id="profile-menu-button" aria-label="Open account menu" aria-expanded="false">
+        <span id="header-initial"></span>
+      </button>
+      <div class="account-menu" id="account-menu" hidden>
+        <p id="menu-username">@student</p>
+        <a href="profile.html">View profile</a>
+        <button id="logout-button" type="button">Log out</button>
+      </div>
+    </header>
+
+    <main class="dashboard">
+      <section class="welcome-row">
+        <div>
+          <p class="eyebrow" id="date-label">TODAY</p>
+          <h1>Good <span id="time-greeting">day</span>, <span id="student-name"></span>.</h1>
+          <p>Choose one thing worth doing well.</p>
+        </div>
+        <div class="day-count" aria-label="Current learning day">
+          <strong id="day-number">01</strong><span>day of<br>practice</span>
+        </div>
+      </section>
+
+      <section id="student-quest" class="student-quest" aria-labelledby="student-quest-title" hidden>
+        <header class="student-quest-header">
+          <div><p class="eyebrow">ONE QUESTION AT A TIME</p><h2 id="student-quest-title">Daily Quest</h2><p id="student-quest-date" class="field-hint"></p></div>
+          <div class="student-quest-progress" aria-live="polite"><span id="student-quest-count"></span><span id="student-quest-complete" class="student-quest-complete" hidden>✓ Daily quest completed</span></div>
+        </header>
+        <p id="student-quest-status" class="management-status" role="status" aria-live="polite">Loading today’s questions…</p>
+        <button id="student-quest-retry" class="button button-outline" type="button" hidden>Try again</button>
+        <p id="student-quest-math" class="field-hint" role="status"></p>
+        <div id="student-quest-content" hidden>
+          <div class="student-question-meta"><h3 id="student-question-number" tabindex="-1"></h3><span id="student-question-state"></span></div>
+          <div id="student-question-prompt" class="quest-rich student-question-prompt"></div>
+          <p id="student-question-notice" class="field-hint" role="status"></p>
+          <form id="student-answer-form">
+            <fieldset id="student-answer-fields"><legend class="quest-sr">Your answer</legend><div id="student-answer-input"></div>
+              <div class="student-answer-actions"><button id="student-answer-submit" class="button button-dark" type="submit">Submit answer</button><button id="student-answer-cancel" class="button button-outline" type="button" hidden>Cancel edit</button></div>
+            </fieldset>
+          </form>
+          <div id="student-answer-saved" hidden><p class="student-answer-caption">Your submitted answer</p><div id="student-answer-value" class="quest-rich"></div><p class="field-hint">Submitted · Awaiting review</p><button id="student-answer-edit" class="button button-outline" type="button">Edit answer</button></div>
+          <p id="student-answer-status" class="form-message" role="status" aria-live="polite"></p>
+          <nav id="student-quest-navigation" class="student-quest-navigation" aria-label="Daily quest questions" hidden><button id="student-quest-prev" class="button button-outline" type="button" aria-label="Previous question">&lt;</button><span id="student-quest-position" aria-live="polite"></span><button id="student-quest-next" class="button button-outline" type="button" aria-label="Next question">&gt;</button></nav>
+        </div>
+      </section>
+
+      <section id="today-focus" class="focus-card" aria-labelledby="focus-title">
+        <div class="focus-number" aria-hidden="true">01</div>
+        <div class="focus-content">
+          <p class="eyebrow">TODAY'S FOCUS</p>
+          <h2 id="focus-title">Understand before you memorize.</h2>
+          <p>Ask “why?” until you can explain the idea in your own words. Clarity is stronger than repetition.</p>
+        </div>
+        <button class="complete-button" id="complete-focus" type="button" aria-pressed="false">
+          <span class="check-circle" aria-hidden="true">✓</span>
+          <span class="complete-text">Mark complete</span>
+        </button>
+      </section>
+
+      <div class="dashboard-grid">
+        <section class="principles" aria-labelledby="principles-title">
+          <div class="section-heading">
+            <p class="eyebrow">LEARNING PRINCIPLES</p>
+            <h2 id="principles-title">What great learners do</h2>
+          </div>
+          <article class="principle-row">
+            <span>01</span><div><h3>Stay curious</h3><p>Questions are evidence that your mind is working.</p></div>
+          </article>
+          <article class="principle-row">
+            <span>02</span><div><h3>Practice deliberately</h3><p>Work at the edge of what you can do, then reflect.</p></div>
+          </article>
+          <article class="principle-row">
+            <span>03</span><div><h3>Make mistakes visible</h3><p>A mistake you study becomes a lesson you keep.</p></div>
+          </article>
+        </section>
+
+        <aside class="reflection-card" aria-labelledby="reflection-title">
+          <p class="eyebrow">QUICK REFLECTION</p>
+          <h2 id="reflection-title">What became clearer today?</h2>
+          <textarea id="reflection-input" rows="5" maxlength="280" placeholder="Write one honest sentence…"></textarea>
+          <div class="reflection-footer">
+            <span id="reflection-status">Saved on this device</span>
+            <button class="text-button" id="save-reflection" type="button">Save note</button>
+          </div>
+        </aside>
+      </div>
+    </main>
+
+    <nav class="mobile-nav" aria-label="Mobile navigation">
+      <a class="is-active" href="main.html"><span aria-hidden="true">●</span>Today</a>
+      <a href="profile.html"><span aria-hidden="true">○</span>Profile</a>
+      <a href="manage.html" data-master-only hidden><span aria-hidden="true">○</span>Manage</a>
+      <a href="material.html" data-material-access hidden><span aria-hidden="true">○</span>Material</a>
+    </nav>
+  </div>
+  <script type="module" src="js/dashboard.js"></script>
+  <script type="module" src="js/student-quest.js"></script>
+</body>
+</html>

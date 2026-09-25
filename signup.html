@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Create your student learning account.">
+  <title>Form — Sign up</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="auth-page">
+  <main class="auth-shell">
+    <section class="auth-intro" aria-labelledby="intro-title">
+      <a class="brand" href="index.html" aria-label="Form home">
+        <span class="brand-mark" aria-hidden="true">F</span>
+        <span>FORM</span>
+      </a>
+      <div class="auth-statement">
+        <p class="eyebrow">A space to grow</p>
+        <h1 id="intro-title">Learn with intention.<br>Build what lasts.</h1>
+        <p>Small, honest effort compounds. Show up, reflect, and take the next step.</p>
+      </div>
+      <p class="auth-footnote">Made for thoughtful learners.</p>
+    </section>
+
+    <section class="auth-panel" aria-label="Create an account">
+      <div class="auth-card">
+        <nav class="auth-tabs" aria-label="Account options">
+          <a class="auth-tab" href="index.html">Log in</a>
+          <a class="auth-tab is-active" href="signup.html" aria-current="page">Sign up</a>
+        </nav>
+
+        <form id="signup-form" class="auth-form" novalidate>
+          <div class="form-heading">
+            <h2>Create your account</h2>
+            <p>Your learning starts with one clear step.</p>
+          </div>
+          <div class="field">
+            <label for="signup-name">Your name</label>
+            <input id="signup-name" name="name" type="text" autocomplete="name" placeholder="How should we call you?" maxlength="40" required>
+          </div>
+          <div class="field">
+            <label for="signup-username">Choose a username</label>
+            <input id="signup-username" name="username" type="text" autocomplete="username" placeholder="3–20 letters or numbers" minlength="3" maxlength="20" pattern="[A-Za-z0-9][A-Za-z0-9._-]{2,19}" autocapitalize="none" spellcheck="false" aria-describedby="username-hint" required>
+            <p class="field-hint" id="username-hint">You can also use a dot, dash, or underscore.</p>
+          </div>
+          <div class="field">
+            <label for="signup-password">Password</label>
+            <div class="password-wrap">
+              <input id="signup-password" name="password" type="password" autocomplete="new-password" placeholder="At least 6 characters" minlength="6" required>
+              <button class="show-password" type="button" data-toggle-password="signup-password" aria-label="Show password">Show</button>
+            </div>
+          </div>
+          <p class="form-message" id="signup-message" aria-live="polite"></p>
+          <button class="button button-dark button-full" type="submit">Create account</button>
+        </form>
+        <p class="server-notice" hidden>Local preview only. Firebase signup works after the website is served or hosted.</p>
+      </div>
+    </section>
+  </main>
+  <script src="js/ui.js"></script>
+  <script type="module" src="js/auth.js"></script>
+</body>
+</html>

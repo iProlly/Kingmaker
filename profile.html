@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Your student learning profile.">
+  <title>Form — Profile</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    .profile-view[hidden],
+    .profile-form[hidden] {
+      display: none !important;
+    }
+
+    .profile-name-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+    }
+
+    .profile-name-row h2 {
+      margin: 0;
+    }
+
+    .profile-role {
+      display: inline-flex;
+      align-items: center;
+      min-height: 1.6rem;
+      padding: 0.15rem 0.55rem;
+      border: 1px solid var(--ink);
+      color: var(--ink);
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      line-height: 1;
+      text-transform: uppercase;
+    }
+
+    .profile-view {
+      display: grid;
+      gap: 0;
+      padding-top: 1.25rem;
+    }
+
+    .profile-detail {
+      display: grid;
+      grid-template-columns: minmax(8rem, 0.35fr) minmax(0, 1fr);
+      gap: 1.5rem;
+      padding: 1.25rem 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .profile-detail-label {
+      color: var(--muted);
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .profile-detail-value {
+      margin: 0;
+      font-family: "DM Sans", sans-serif;
+      font-size: 1rem;
+      font-weight: 500;
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+    }
+
+    .profile-view-actions,
+    .profile-form-actions {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: 2rem;
+    }
+
+    .profile-view-actions .button,
+    .profile-form-actions .button {
+      min-width: 9rem;
+    }
+
+    .profile-logout-section {
+      display: flex;
+      justify-content: center;
+      margin-top: clamp(3rem, 8vh, 6rem);
+      padding-top: 2rem;
+      border-top: none;
+    }
+
+    .profile-logout-section .button {
+      width: min(100%, 25rem);
+    }
+
+    @media (max-width: 600px) {
+      .profile-detail {
+        grid-template-columns: 1fr;
+        gap: 0.4rem;
+      }
+
+      .profile-view-actions,
+      .profile-form-actions {
+        flex-direction: column;
+      }
+
+      .profile-view-actions .button,
+      .profile-form-actions .button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="site-header">
+      <a class="brand" href="main.html" aria-label="Form dashboard"><span class="brand-mark" aria-hidden="true">F</span><span>FORM</span></a>
+      <nav class="desktop-nav" aria-label="Main navigation">
+        <a href="main.html">Today</a><a class="is-active" href="profile.html">Profile</a><a href="manage.html" data-master-only hidden>Manage</a><a href="material.html" data-material-access hidden>Material</a>
+      </nav>
+      <button class="avatar-button" id="profile-menu-button" aria-label="Open account menu" aria-expanded="false"><span id="header-initial"></span></button>
+      <div class="account-menu" id="account-menu" hidden>
+        <p id="menu-username">@student</p><a href="profile.html">View profile</a><button id="logout-button" type="button">Log out</button>
+      </div>
+    </header>
+
+    <main class="profile-page">
+      <header class="profile-heading">
+        <p class="eyebrow">YOUR PROFILE</p>
+        <h1>Keep becoming.</h1>
+        <p>Your profile is a reminder of who you are choosing to be.</p>
+      </header>
+
+      <section class="profile-card" aria-labelledby="profile-title">
+        <div class="profile-identity">
+          <div class="large-avatar" id="profile-initial" aria-hidden="true"></div>
+          <div>
+            <div class="profile-name-row">
+              <h2 id="profile-title">...</h2>
+              <span class="profile-role" id="profile-role" aria-label="Role: Guest">...</span>
+            </div>
+            <p id="profile-username">...</p>
+          </div>
+        </div>
+
+        <div class="profile-view" id="profile-view">
+          <div class="profile-detail">
+            <span class="profile-detail-label">Display name</span>
+            <p class="profile-detail-value" id="display-name-view">Student</p>
+          </div>
+          <div class="profile-detail">
+            <span class="profile-detail-label">My learning goal</span>
+            <p class="profile-detail-value" id="learning-goal-view">No learning goal added yet.</p>
+          </div>
+          <div class="profile-view-actions">
+            <button class="button button-dark" id="edit-profile-button" type="button">Edit profile</button>
+          </div>
+        </div>
+
+        <form id="profile-form" class="profile-form" hidden>
+          <div class="field">
+            <label for="display-name">Display name</label>
+            <input id="display-name" name="displayName" type="text" autocomplete="name" maxlength="40" required>
+          </div>
+          <div class="field">
+            <label for="learning-goal">My learning goal</label>
+            <textarea id="learning-goal" name="learningGoal" rows="4" maxlength="180" placeholder="What do you want to become better at?"></textarea>
+            <p class="field-hint">Saved privately on this device.</p>
+          </div>
+          <p class="form-message" id="profile-message" aria-live="polite"></p>
+          <div class="profile-form-actions">
+            <button class="button button-dark" type="submit">Save changes</button>
+            <button class="button button-outline" id="cancel-edit-button" type="button">Cancel</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="account-section profile-logout-section" aria-label="Account actions">
+        <button class="button button-outline" id="page-logout-button" type="button">Log out</button>
+      </section>
+    </main>
+
+    <nav class="mobile-nav" aria-label="Mobile navigation">
+      <a href="main.html"><span aria-hidden="true">○</span>Today</a><a class="is-active" href="profile.html"><span aria-hidden="true">●</span>Profile</a><a href="manage.html" data-master-only hidden><span aria-hidden="true">○</span>Manage</a><a href="material.html" data-material-access hidden><span aria-hidden="true">○</span>Material</a>
+    </nav>
+  </div>
+  <script type="module" src="js/profile.js"></script>
+  <script>
+    (() => {
+      const view = document.querySelector("#profile-view");
+      const form = document.querySelector("#profile-form");
+      const editButton = document.querySelector("#edit-profile-button");
+      const cancelButton = document.querySelector("#cancel-edit-button");
+      const displayNameInput = document.querySelector("#display-name");
+      const learningGoalInput = document.querySelector("#learning-goal");
+      const displayNameView = document.querySelector("#display-name-view");
+      const learningGoalView = document.querySelector("#learning-goal-view");
+      const profileTitle = document.querySelector("#profile-title");
+      const profileMessage = document.querySelector("#profile-message");
+
+      let savedDisplayName = "";
+      let savedLearningGoal = "";
+
+      function syncView() {
+        const displayName = displayNameInput.value.trim() || profileTitle.textContent.trim() || "Student";
+        const learningGoal = learningGoalInput.value.trim();
+
+        displayNameView.textContent = displayName;
+        learningGoalView.textContent = learningGoal || "No learning goal added yet.";
+        savedDisplayName = displayName;
+        savedLearningGoal = learningGoal;
+      }
+
+      function showView() {
+        syncView();
+        form.hidden = true;
+        view.hidden = false;
+      }
+
+      function showForm() {
+        view.hidden = true;
+        form.hidden = false;
+        profileMessage.textContent = "";
+        displayNameInput.focus();
+      }
+
+      editButton.addEventListener("click", showForm);
+
+      cancelButton.addEventListener("click", () => {
+        displayNameInput.value = savedDisplayName;
+        learningGoalInput.value = savedLearningGoal;
+        showView();
+      });
+
+      new MutationObserver(() => {
+        if (profileMessage.textContent.trim() === "Profile saved.") showView();
+      }).observe(profileMessage, { childList: true, subtree: true });
+
+      new MutationObserver(syncView).observe(profileTitle, { childList: true, subtree: true });
+      window.addEventListener("load", syncView);
+      setTimeout(syncView, 500);
+    })();
+  </script>
+</body>
+</html>

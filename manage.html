@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Manage student accounts and learning records.">
+  <title>Form — Manage</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+
+  <style>
+    /* Manage-only presentation; existing record and marking scripts stay intact. */
+    .master-records{padding-bottom:1.4rem}
+    .master-record-tabs{display:flex;gap:2rem;border-bottom:1px solid var(--line);margin:0 0 1.75rem}
+    .master-record-tabs button{padding:.85rem .15rem;border:0;border-bottom:2px solid transparent;background:none;color:var(--muted);font-weight:600;min-height:3rem}
+    .master-record-tabs button[aria-selected=true]{color:var(--ink);border-bottom-color:var(--ink)}
+    .master-record-tabs button:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+    .master-records .record-toolbar{padding:0;align-items:center;gap:1rem;margin-bottom:1.25rem}
+    .master-records .record-toolbar h2{font-size:1.25rem;letter-spacing:-.025em;margin:0}
+    .master-record-hint{font-size:.83rem;color:var(--muted);margin:.45rem 0 0;line-height:1.55}
+    .master-records .record-week-controls button{min-height:2.75rem;min-width:2.75rem;padding:0 .9rem;font-size:.85rem}
+    .master-records #exam-add{min-height:2.75rem;font-size:.85rem;white-space:nowrap}
+    .master-record-key{display:flex;flex-wrap:wrap;gap:.6rem 1.35rem;padding:.6rem 0 1rem;color:var(--muted);font-size:.75rem}
+    .master-record-key span{display:inline-flex;align-items:center;gap:.45rem;white-space:nowrap}
+    .master-record-key b{color:var(--ink);font-size:.9rem;font-weight:500}
+    .master-records .management-status:empty,.master-records #exam-statistics-sync:empty{display:none}
+    .master-records .record-table-scroll{margin-top:.5rem;border-color:var(--line)}
+    .master-records .record-table thead th{background:#f6f6f4;padding:.9rem .6rem;font-weight:600}
+    .master-records .record-table td,.master-records .record-table th{border-right-color:#eeeeeb}
+    .master-records .record-table tbody tr:hover td{background:#fafaf8}
+    .master-records .record-table tbody th{font-size:.9rem}
+    .master-records .record-complete{width:2.4rem;min-height:2.4rem;font-size:1rem}
+    .master-records .record-marked{min-width:2.4rem}
+    .master-records .record-table .record-today{box-shadow:inset 0 2px var(--ink)}
+    .master-records .exam-record-section{border:0;margin:0;padding:0}
+    .master-records .exam-add-column,.master-records #exam-rows td:last-child{display:none}
+    .master-records .exam-score{min-height:2.7rem;font-size:.85rem}
+    .master-records .exam-score.is-marked{font-size:1.05rem}
+    .master-record-footnote{font-size:.73rem;color:var(--muted);margin:.85rem 0 0}
+    @media(max-width:600px){
+      .master-record-tabs{gap:1.6rem;margin-bottom:1.4rem}
+      .master-records .record-toolbar{align-items:flex-start}
+      .master-records .record-toolbar h2{font-size:1.1rem}
+      .master-records .record-week-controls{margin-top:.25rem}
+      .master-record-key{gap:.55rem 1rem;font-size:.72rem}
+      .master-records #exam-add{margin-top:.2rem}
+      .master-records #exam-record-section .record-toolbar>div{flex:1;min-width:12rem}
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="site-header">
+      <a class="brand" href="main.html" aria-label="Form dashboard">
+        <span class="brand-mark" aria-hidden="true">F</span><span>FORM</span>
+      </a>
+      <nav class="desktop-nav" aria-label="Main navigation">
+        <a href="main.html">Today</a>
+        <a href="profile.html">Profile</a>
+        <a class="is-active" href="manage.html" data-master-only hidden>Manage</a>
+        <a href="material.html" data-master-only hidden>Material</a>
+      </nav>
+      <button class="avatar-button" id="profile-menu-button" aria-label="Open account menu" aria-expanded="false">
+        <span id="header-initial"></span>
+      </button>
+      <div class="account-menu" id="account-menu" hidden>
+        <p id="menu-username">@student</p>
+        <a href="profile.html">View profile</a>
+        <button id="logout-button" type="button">Log out</button>
+      </div>
+    </header>
+
+    <p class="manage-access-status" id="manage-access-status" role="status">Checking access…</p>
+
+    <main class="manage-page" id="manage-page" hidden>
+      <header class="manage-heading">
+        <p class="eyebrow">MASTER AREA</p>
+        <h1>Manage.</h1>
+        <p>Keep each learner’s place clear and intentional.</p>
+      </header>
+
+      <div class="manage-sections">
+        <details class="manage-section">
+          <summary>
+            <span class="manage-section-title">User Management</span>
+            <span class="manage-section-meta" id="user-count">Loading…</span>
+          </summary>
+          <div class="manage-section-body">
+            <p class="management-status" id="management-status" role="status" aria-live="polite"></p>
+            <div class="user-list" id="user-list" aria-label="Website users"></div>
+          </div>
+        </details>
+
+        <details class="manage-section">
+          <summary>
+            <span class="manage-section-title">Student Record</span>
+          </summary>
+          <div class="manage-section-body student-record-body master-records" id="student-record-body">
+            <div class="master-record-tabs" role="tablist" aria-label="Student record type">
+              <button id="master-quest-tab" type="button" role="tab" aria-selected="true" aria-controls="master-quest-panel">Daily Quest</button>
+              <button id="master-exam-tab" type="button" role="tab" aria-selected="false" aria-controls="exam-record-section" tabindex="-1">Exams</button>
+            </div>
+            <section id="master-quest-panel" role="tabpanel" aria-labelledby="master-quest-tab">
+            <div class="record-toolbar">
+              <div><h2 id="record-week-label"></h2><p class="master-record-hint">Select a tick to review and mark answers.</p></div>
+              <div class="record-week-controls" role="group" aria-label="Choose a week">
+                <button id="record-prev" class="button button-outline" type="button" aria-label="Previous week">&lt;</button>
+                <button id="record-current" class="button button-outline" type="button">This week</button>
+                <button id="record-next" class="button button-outline" type="button" aria-label="Next week">&gt;</button>
+              </div>
+            </div>
+            <p class="field-hint record-legend" hidden></p>
+            <div class="master-record-key" aria-label="Completion key"><span><b>✓</b> Submitted</span><span><b>✓✓</b> Marked</span><span><b>×</b> Incomplete</span><span><b>—</b> No quest / future</span></div>
+            <p id="record-status" class="management-status" role="status" aria-live="polite"></p>
+            <button id="record-retry" class="button button-outline" type="button" hidden>Retry loading</button>
+            <div class="record-table-scroll" role="region" aria-label="Weekly student completion table" tabindex="0">
+              <table class="record-table"><caption id="record-caption" class="quest-sr">Student submissions for the selected week</caption><thead id="record-head"></thead><tbody id="record-rows"></tbody></table>
+            </div>
+            <p class="master-record-footnote">Seven days per view · Thailand time</p>
+            </section>
+            <section id="exam-record-section" class="exam-record-section" role="tabpanel" aria-labelledby="master-exam-tab" hidden>
+              <div class="record-toolbar"><div><h2 id="exam-record-title">Exam results</h2><p class="master-record-hint">Open a heading for exam details, or a student’s score to mark.</p></div><button id="exam-add" class="button button-dark" type="button" aria-label="Add exam">+ Add exam</button></div>
+              
+              <p id="exam-status" class="management-status" role="status" aria-live="polite"></p>
+              <button id="exam-retry" class="button button-outline" type="button" hidden>Retry loading exams</button>
+              <div class="record-table-scroll" id="exam-table-scroll" role="region" aria-label="Student exam records" tabindex="0">
+                <table class="record-table exam-table" id="exam-table"><caption class="quest-sr">Student scores by exam. Click column headings to view details.</caption><thead id="exam-head"></thead><tbody id="exam-rows"></tbody></table>
+              </div>
+              <p class="master-record-footnote">Blank scores stay unmarked · 0 counts as marked</p>
+            </section>
+          </div>
+        </details>
+      </div>
+    </main>
+
+    <dialog id="record-dialog" class="record-dialog" aria-labelledby="record-dialog-title">
+      <header class="record-dialog-header"><div><p class="eyebrow">STUDENT ANSWERS</p><h2 id="record-dialog-title"></h2><p id="record-dialog-date" class="field-hint"></p></div><button id="record-dialog-close" class="button button-outline" type="button">Close</button></header>
+      <p id="record-dialog-status" class="management-status" role="status" aria-live="polite"></p>
+      <p id="record-math-status" class="field-hint" role="status"></p>
+      <div id="record-answers"></div>
+    </dialog>
+
+    <dialog id="exam-dialog" class="record-dialog exam-dialog" aria-labelledby="exam-dialog-title">
+      <header class="record-dialog-header"><div><p class="eyebrow" id="exam-dialog-eyebrow">EXAM DETAILS</p><h2 id="exam-dialog-title"></h2></div><button id="exam-dialog-close" class="button button-outline" type="button">Close</button></header>
+      <div id="exam-dialog-content"></div>
+      <p id="exam-dialog-status" class="form-message" role="status" aria-live="polite"></p>
+    </dialog>
+
+    <nav class="mobile-nav has-manage" aria-label="Mobile navigation">
+      <a href="main.html"><span aria-hidden="true">○</span>Today</a>
+      <a href="profile.html"><span aria-hidden="true">○</span>Profile</a>
+      <a class="is-active" href="manage.html" data-master-only hidden><span aria-hidden="true">●</span>Manage</a>
+      <a href="material.html" data-master-only hidden><span aria-hidden="true">○</span>Material</a>
+    </nav>
+  </div>
+  <script type="module" src="js/manage.js"></script>
+  <script type="module" src="js/student-record.js"></script>
+  <script type="module" src="js/exam-record.js"></script>
+
+  <script>
+    (() => {
+      const tabs = [...document.querySelectorAll('.master-record-tabs [role="tab"]')];
+      function activate(tab, focus = false) {
+        tabs.forEach(item => {
+          const selected = item === tab;
+          item.setAttribute('aria-selected', String(selected));
+          item.tabIndex = selected ? 0 : -1;
+          document.getElementById(item.getAttribute('aria-controls')).hidden = !selected;
+        });
+        if (focus) tab.focus();
+      }
+      tabs.forEach((tab, index) => {
+        tab.addEventListener('click', () => activate(tab));
+        tab.addEventListener('keydown', event => {
+          let next;
+          if (event.key === 'ArrowRight') next = (index + 1) % tabs.length;
+          else if (event.key === 'ArrowLeft') next = (index - 1 + tabs.length) % tabs.length;
+          else if (event.key === 'Home') next = 0;
+          else if (event.key === 'End') next = tabs.length - 1;
+          else return;
+          event.preventDefault(); activate(tabs[next], true);
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

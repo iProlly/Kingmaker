@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Browse permanent learning materials.">
+  <title>Form — Material</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="site-header">
+      <a class="brand" href="main.html" aria-label="Form dashboard">
+        <span class="brand-mark" aria-hidden="true">F</span><span>FORM</span>
+      </a>
+      <nav class="desktop-nav" aria-label="Main navigation">
+        <a href="main.html">Today</a>
+        <a href="profile.html">Profile</a>
+        <a href="manage.html" data-master-only hidden>Manage</a>
+        <a class="is-active" href="material.html" data-material-access hidden>Material</a>
+      </nav>
+      <button class="avatar-button" id="profile-menu-button" aria-label="Open account menu" aria-expanded="false">
+        <span id="header-initial"></span>
+      </button>
+      <div class="account-menu" id="account-menu" hidden>
+        <p id="menu-username">@student</p>
+        <a href="profile.html">View profile</a>
+        <button id="logout-button" type="button">Log out</button>
+      </div>
+    </header>
+
+    <p class="manage-access-status" id="material-access-status" role="status">Checking access…</p>
+
+    <main class="manage-page" id="material-page" hidden>
+      <header class="manage-heading">
+        <p class="eyebrow">LEARNING MATERIAL</p>
+        <h1>Material.</h1>
+      </header>
+
+      <div class="manage-sections">
+        <details class="manage-section">
+          <summary>
+            <span class="manage-section-title">Permanent Material</span>
+          </summary>
+          <div class="manage-section-body material-browser">
+            <div class="material-toolbar">
+              <nav class="material-breadcrumbs" id="material-breadcrumbs" aria-label="Current material folder"></nav>
+              <div class="material-actions" data-master-only hidden>
+                <button class="button button-outline material-action-button" id="add-folder-button" type="button">+ Folder</button>
+                <button class="button button-dark material-action-button" id="add-files-button" type="button">+ Files</button>
+                <input id="material-file-input" type="file" multiple hidden accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.csv,.md,.png,.jpg,.jpeg,.gif,.webp,.mp3,.wav,.m4a,.mp4,.mov,.webm,.zip">
+              </div>
+            </div>
+
+            <div class="material-upload" id="material-upload" hidden>
+              <div class="material-upload-copy">
+                <span id="material-upload-label">Uploading…</span>
+                <span id="material-upload-percent">0%</span>
+              </div>
+              <progress id="material-upload-progress" max="100" value="0">0%</progress>
+            </div>
+
+            <p class="management-status" id="material-status" role="status" aria-live="polite">Loading…</p>
+            <div class="material-items" id="material-items" role="list" aria-label="Folders and files"></div>
+            <p class="material-empty" id="material-empty" hidden>This folder is empty.</p>
+          </div>
+        </details>
+
+        <details class="manage-section" data-master-only hidden>
+          <summary>
+            <span class="manage-section-title">Daily Quest</span>
+          </summary>
+          <div class="manage-section-body" id="quest-browser">
+            <p class="field-hint">Prepare questions for today or a future date. Dates use Thailand time.</p>
+            <form id="quest-date-form" class="quest-date-picker">
+              <label for="quest-date">Prepare a date</label>
+              <input id="quest-date" type="date" required>
+              <button class="button button-outline" type="submit">Open date</button>
+            </form>
+            <p id="quest-status" class="management-status" role="status" aria-live="polite">Loading quests…</p>
+            <div id="quest-upcoming"></div>
+            <details class="quest-past"><summary>Past quests</summary><div id="quest-past"></div></details>
+          </div>
+        </details>
+      </div>
+    </main>
+
+    <section id="quest-editor" class="manage-page quest-editor" aria-labelledby="quest-editor-title" hidden>
+      <p class="eyebrow">DAILY QUEST · MASTER EDITOR</p>
+      <h1 id="quest-editor-title">Add question</h1>
+      <form id="quest-question-form">
+        <fieldset id="quest-fields">
+          <div class="quest-editor-meta">
+            <div class="field"><label for="quest-question-date">Quest date</label><input id="quest-question-date" type="date" required></div>
+            <div class="field"><label for="quest-type">Question type</label><select id="quest-type" class="role-select"><option value="mcq">Multiple choice</option><option value="short">Short answer</option></select></div>
+          </div>
+          <div class="quest-toolbar" role="group" aria-label="Question formatting">
+            <button type="button" data-quest-format="bold"><strong>B</strong><span class="quest-sr">Bold</span></button>
+            <button type="button" data-quest-format="italic"><em>I</em><span class="quest-sr">Italic</span></button>
+            <button type="button" data-quest-format="inline">Inline math</button>
+            <button type="button" data-quest-format="display">Equation</button>
+          </div>
+          <div class="field"><label for="quest-prompt">Question</label><textarea id="quest-prompt" rows="7" maxlength="20000" required placeholder="Write your question…" aria-describedby="quest-format-help"></textarea></div>
+          <p id="quest-format-help" class="field-hint">Select text, then choose a format. Use **bold**, *italic*, \( x^2 \) for inline math, or $$ x^2 $$ for an equation. Formatting also works in choices.</p>
+          <section id="quest-options-section" aria-labelledby="quest-options-title"><h2 id="quest-options-title">Choices</h2><div id="quest-options"></div><button id="quest-add-option" class="button button-outline" type="button">+ Choice</button></section>
+          <section class="quest-preview-panel" aria-labelledby="quest-preview-title"><h2 id="quest-preview-title">Preview</h2><p id="quest-math-status" class="field-hint" role="status"></p><div id="quest-preview" class="quest-rich"></div></section>
+          <div class="quest-editor-actions"><button class="button button-dark" id="quest-save" type="submit">Save question</button><button class="button button-outline" id="quest-cancel" type="button">Back to quests</button></div>
+        </fieldset>
+        <p id="quest-editor-status" class="form-message" role="status" aria-live="polite"></p>
+      </form>
+    </section>
+
+    <dialog class="folder-dialog" id="folder-dialog" aria-labelledby="folder-dialog-title">
+      <form class="folder-dialog-card" id="folder-form">
+        <p class="eyebrow">NEW FOLDER</p>
+        <h2 id="folder-dialog-title">Add a folder</h2>
+        <div class="field">
+          <label for="folder-name">Folder name</label>
+          <input id="folder-name" name="folderName" type="text" maxlength="60" autocomplete="off" required>
+        </div>
+        <p class="form-message" id="folder-message" aria-live="polite"></p>
+        <div class="folder-dialog-actions">
+          <button class="button button-outline" id="cancel-folder-button" type="button">Cancel</button>
+          <button class="button button-dark" type="submit">Add folder</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog class="folder-dialog" id="delete-dialog" aria-labelledby="delete-dialog-title" aria-describedby="delete-dialog-copy delete-message">
+      <form class="folder-dialog-card" id="delete-form">
+        <p class="eyebrow">DELETE</p>
+        <h2 id="delete-dialog-title">Delete item?</h2>
+        <p class="delete-dialog-copy" id="delete-dialog-copy"></p>
+        <p class="form-message" id="delete-message" aria-live="polite"></p>
+        <div class="folder-dialog-actions">
+          <button class="button button-outline" id="cancel-delete-button" type="button">Cancel</button>
+          <button class="button button-dark" id="confirm-delete-button" type="submit">Delete</button>
+        </div>
+      </form>
+    </dialog>
+
+    <nav class="mobile-nav" aria-label="Mobile navigation">
+      <a href="main.html"><span aria-hidden="true">○</span>Today</a>
+      <a href="profile.html"><span aria-hidden="true">○</span>Profile</a>
+      <a href="manage.html" data-master-only hidden><span aria-hidden="true">○</span>Manage</a>
+      <a class="is-active" href="material.html" data-material-access hidden><span aria-hidden="true">●</span>Material</a>
+    </nav>
+  </div>
+  <script type="module" src="js/material.js"></script>
+  <script type="module" src="js/daily-quest.js"></script>
+</body>
+</html>
