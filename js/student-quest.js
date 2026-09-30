@@ -30,6 +30,10 @@ function node(tag, text, className) {
 function currentQuestion() { return questions.find(question => question.id === currentId); }
 function submitted(question) {
   const answer = answers.get(question.id);
+  // Answers are keyed by question ID. Editing the question does not undo a submission.
+  return answer && answer.date === question.date;
+}
+function sameQuestionVersion(question, answer) {
   return answer && answer.date === question.date && answer.type === question.type && answer.questionRevision === question.revision;
 }
 function draftKey(id) { return `formQuestDraft-v1-${user.uid}-${today}-${id}`; }
@@ -53,7 +57,7 @@ function existingDraft(id) {
 }
 function makeDraft(question) {
   const answer = answers.get(question.id);
-  return { type: question.type, text: answer?.type === "short" ? answer.text : "", choiceIndex: submitted(question) ? answer.choiceIndex : -1,
+  return { type: question.type, text: answer?.type === "short" ? answer.text : "", choiceIndex: sameQuestionVersion(question, answer) ? answer.choiceIndex : -1,
     questionRevision: question.revision, baseRevision: answer?.revision || 0, dirty: false };
 }
 function getDraft(question) {
@@ -170,7 +174,7 @@ function render() {
   $("student-question-number").textContent = `Question ${index + 1}`;
   $("student-question-state").textContent = locked ? (answer.mark === "right" ? "✓ Right · 1 point" : "× Wrong · 0 points") : saved ? "✓ Submitted" : question.type === "mcq" ? "Multiple choice" : "Short answer";
   richText($("student-question-prompt"), question.prompt);
-  $("student-question-notice").textContent = answer && !saved ? (locked ? "Your teacher changed this question after marking. Your marked answer remains locked." : "This question has changed since your submission. Review it and submit your answer again.") : draft?.questionChanged ? "Your teacher updated this question. Check your draft before submitting." : "";
+  $("student-question-notice").textContent = draft?.questionChanged ? "Your teacher updated this question. Check your draft before submitting. Any saved answer and marks still count." : saved && !sameQuestionVersion(question, answer) ? "Your teacher updated this question after your submission. Your submitted answer and any marks still count." : "";
   $("student-answer-form").hidden = !editing;
   $("student-answer-saved").hidden = editing;
   $("student-answer-fields").disabled = saving;
@@ -184,7 +188,7 @@ function render() {
     $("student-answer-cancel").hidden = !saved;
   } else {
     const value = answer.type === "mcq"
-      ? (saved ? `${String.fromCharCode(65 + answer.choiceIndex)}. ${question.options[answer.choiceIndex]}` : `Option ${String.fromCharCode(65 + answer.choiceIndex)} (earlier question version)`)
+      ? (sameQuestionVersion(question, answer) ? `${String.fromCharCode(65 + answer.choiceIndex)}. ${question.options[answer.choiceIndex]}` : `Option ${String.fromCharCode(65 + answer.choiceIndex)} (earlier question version)`)
       : answer.text;
     richText($("student-answer-value"), value);
   }

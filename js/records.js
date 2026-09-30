@@ -15,7 +15,9 @@ function bangkokDate() { const parts = new Intl.DateTimeFormat("en-CA", { timeZo
 function addDays(day, n) { const d = new Date(day + "T12:00:00Z"); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); }
 function monday(day) { return addDays(day, -(new Date(day + "T12:00:00Z").getUTCDay() + 6) % 7); }
 function dateLabel(day, full = false) { return new Intl.DateTimeFormat("en-GB", { timeZone: "UTC", ...(full ? { weekday: "long" } : {}), day: "numeric", month: "short", year: "numeric" }).format(new Date(day + "T12:00:00Z")); }
-function matches(q, a) { return a && a.questionRevision === q.revision && a.type === q.type && a.date === q.date; }
+// Answers are keyed by question ID. Question edits do not reset completion or scores.
+function matches(q, a) { return a && a.date === q.date; }
+function sameQuestionVersion(q, a) { return matches(q, a) && a.questionRevision === q.revision && a.type === q.type; }
 function marked(a) { return a && ["right", "wrong"].includes(a.mark) && a.markedAnswerRevision === a.revision; }
 function dailySummary(items) {
   const submitted = items.filter(q => matches(q, answers.get(q.id)));
@@ -55,15 +57,15 @@ function renderDay() {
   const items = questions.filter(q => q.date === selection.day), s = dailySummary(items);
   content.replaceChildren(node("div", s.marked ? `Score ${s.right}/${items.length}` : "Not marked yet", "quest-day-score"), node("p", `${s.submitted}/${items.length} submitted · ${s.marked}/${items.length} marked`, "field-hint"));
   items.forEach((q, index) => {
-    const a = answers.get(q.id), current = matches(q, a), graded = marked(a);
+    const a = answers.get(q.id), sameVersion = sameQuestionVersion(q, a), graded = marked(a);
     const article = node("article", undefined, "record-answer"); article.append(node("h3", `Question ${index + 1} · ${q.type === "mcq" ? "Multiple choice" : "Short answer"}`));
     const prompt = node("div", undefined, "quest-rich record-answer-prompt"); richText(prompt, q.prompt); article.append(prompt);
-    if (q.type === "mcq") { const options = node("ol", undefined, "record-answer-options"); options.type = "A"; q.options.forEach((value, i) => { const li = node("li", undefined, "quest-rich"); richText(li, value); if (current && a.choiceIndex === i) { li.classList.add("record-selected-option"); li.append(node("p", "Your choice", "field-hint")); } options.append(li); }); article.append(options); }
+    if (q.type === "mcq") { const options = node("ol", undefined, "record-answer-options"); options.type = "A"; q.options.forEach((value, i) => { const li = node("li", undefined, "quest-rich"); richText(li, value); if (sameVersion && a.choiceIndex === i) { li.classList.add("record-selected-option"); li.append(node("p", "Your choice", "field-hint")); } options.append(li); }); article.append(options); }
     if (a) {
       const box = node("div", undefined, "record-answer-value"); box.append(node("p", "Your submitted answer")); const value = node("div", undefined, "quest-rich");
-      const answerText = a.type === "short" ? a.text : current ? `${String.fromCharCode(65 + a.choiceIndex)}. ${q.options[a.choiceIndex] || ""}` : `Option ${String.fromCharCode(65 + a.choiceIndex)} from the earlier question version`;
+      const answerText = a.type === "short" ? a.text : sameVersion ? `${String.fromCharCode(65 + a.choiceIndex)}. ${q.options[a.choiceIndex] || ""}` : `Option ${String.fromCharCode(65 + a.choiceIndex)} from the earlier question version`;
       richText(value, answerText || ""); box.append(value); article.append(box);
-      if (!current) article.append(node("p", "This question was changed after your submission. Your earlier answer and mark are shown below; they are not counted in the current question’s score.", "exam-edit-notice"));
+      if (!sameVersion) article.append(node("p", "This question was updated after your submission. Your submitted answer and any marks still count.", "exam-edit-notice"));
       article.append(node("p", graded ? a.mark === "right" ? "✓ Right · 1 point" : "× Wrong · 0 points" : "Awaiting marking", graded ? `mark-result ${a.mark === "right" ? "mark-right" : "mark-wrong"}` : "field-hint"));
     } else article.append(node("p", "No answer submitted.", "field-hint"));
     content.append(article);

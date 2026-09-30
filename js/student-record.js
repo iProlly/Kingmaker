@@ -48,6 +48,10 @@ function node(tag, text, className) {
 }
 function dayQuestions(day) { return questions.filter(question => question.date === day); }
 function matches(question, answer) {
+  // Answers are keyed by question ID. Keep submissions and marks after question edits.
+  return answer && answer.date === question.date;
+}
+function sameQuestionVersion(question, answer) {
   return answer && answer.date === question.date && answer.type === question.type && answer.questionRevision === question.revision;
 }
 function completion(studentId, day) {
@@ -179,24 +183,26 @@ function renderAnswers() {
     ? `${score.marked} of ${score.total} marked${score.marked < score.total ? " · Score so far" : " · Marking complete"}. Each question is worth 1 point.`
     : "This day's questions or submissions have changed. The record is no longer complete.";
   items.forEach((question, index) => {
-    const answer = record.answers.get(question.id), current = matches(question, answer);
+    const answer = record.answers.get(question.id), current = matches(question, answer), sameVersion = sameQuestionVersion(question, answer);
     const article = node("article", undefined, "record-answer");
     article.append(node("h3", `Question ${index + 1} · ${question.type === "mcq" ? "Multiple choice" : "Short answer"}`));
     const prompt = node("div", undefined, "quest-rich record-answer-prompt"); richText(prompt, question.prompt); article.append(prompt);
     if (question.type === "mcq") {
       const choices = node("ol", undefined, "record-answer-options"); choices.type = "A";
       question.options.forEach((option, optionIndex) => {
-        const li = node("li", undefined, current && answer.choiceIndex === optionIndex ? "record-selected-option" : "");
+        const li = node("li", undefined, sameVersion && answer.choiceIndex === optionIndex ? "record-selected-option" : "");
         const content = node("div", undefined, "quest-rich"); richText(content, option); li.append(content);
-        if (current && answer.choiceIndex === optionIndex) li.append(node("span", "Student’s choice", "field-hint")); choices.append(li);
+        if (sameVersion && answer.choiceIndex === optionIndex) li.append(node("span", "Student’s choice", "field-hint")); choices.append(li);
       }); article.append(choices);
     }
     const box = node("div", undefined, "record-answer-value"); box.append(node("p", "Submitted answer"));
     const value = node("div", undefined, "quest-rich");
     if (!answer) value.textContent = "No answer submitted.";
-    else if (!current) value.textContent = "This submission belongs to an earlier version of the question. It does not count as completed.";
-    else richText(value, question.type === "mcq" ? `${String.fromCharCode(65 + answer.choiceIndex)}. ${question.options[answer.choiceIndex]}` : answer.text);
+    else richText(value, answer.type === "mcq"
+      ? (sameVersion ? `${String.fromCharCode(65 + answer.choiceIndex)}. ${question.options[answer.choiceIndex]}` : `Option ${String.fromCharCode(65 + answer.choiceIndex)} (earlier question version)`)
+      : answer.text);
     box.append(value); article.append(box);
+    if (current && !sameVersion) article.append(node("p", "This question was updated after submission. The submitted answer and any marks still count.", "field-hint"));
     const timestamp = answer?.updatedAt?.toDate?.();
     if (timestamp) article.append(node("p", "Last submitted: " + new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Bangkok", dateStyle: "medium", timeStyle: "short" }).format(timestamp) + " (Thailand)", "field-hint"));
     if (current) {
