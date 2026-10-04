@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/quest-media.css">
 </head>
 <body>
   <div class="app-shell">
@@ -95,16 +96,17 @@
         <fieldset id="quest-fields">
           <div class="quest-editor-meta">
             <div class="field"><label for="quest-question-date">Quest date</label><input id="quest-question-date" type="date" required></div>
-            <div class="field"><label for="quest-type">Question type</label><select id="quest-type" class="role-select"><option value="mcq">Multiple choice</option><option value="short">Short answer</option></select></div>
+            <div class="field"><label for="quest-type">Question type</label><select id="quest-type" class="role-select"><option value="mcq">Multiple choice · one answer</option><option value="multi">Multiple answers · select all that apply</option><option value="short">Short answer</option></select></div>
           </div>
           <div class="quest-toolbar" role="group" aria-label="Question formatting">
             <button type="button" data-quest-format="bold"><strong>B</strong><span class="quest-sr">Bold</span></button>
             <button type="button" data-quest-format="italic"><em>I</em><span class="quest-sr">Italic</span></button>
             <button type="button" data-quest-format="inline">Inline math</button>
             <button type="button" data-quest-format="display">Equation</button>
+            <button type="button" id="quest-insert-image">Insert image</button>
           </div>
           <div class="field"><label for="quest-prompt">Question</label><textarea id="quest-prompt" rows="7" maxlength="20000" required placeholder="Write your question…" aria-describedby="quest-format-help"></textarea></div>
-          <p id="quest-format-help" class="field-hint">Select text, then choose a format. Use **bold**, *italic*, \( x^2 \) for inline math, or $$ x^2 $$ for an equation. Formatting also works in choices.</p>
+          <p id="quest-format-help" class="field-hint">Select text, then choose a format. Use **bold**, *italic*, \( x^2 \) for inline math, or $$ x^2 $$ for an equation. Formatting also works in choices. Place the cursor between paragraphs, then use Insert image. Each choice also has an Image button. Move or delete the inserted ![description](image URL) text to move or remove a picture.</p>
           <section id="quest-options-section" aria-labelledby="quest-options-title"><h2 id="quest-options-title">Choices</h2><div id="quest-options"></div><button id="quest-add-option" class="button button-outline" type="button">+ Choice</button></section>
           <section class="quest-preview-panel" aria-labelledby="quest-preview-title"><h2 id="quest-preview-title">Preview</h2><p id="quest-math-status" class="field-hint" role="status"></p><div id="quest-preview" class="quest-rich"></div></section>
           <div class="quest-editor-actions"><button class="button button-dark" id="quest-save" type="submit">Save question</button><button class="button button-outline" id="quest-cancel" type="button">Back to quests</button></div>
@@ -112,6 +114,18 @@
         <p id="quest-editor-status" class="form-message" role="status" aria-live="polite"></p>
       </form>
     </section>
+
+    <dialog class="folder-dialog quest-image-dialog" id="quest-image-dialog" aria-labelledby="quest-image-title">
+      <form class="folder-dialog-card" id="quest-image-form">
+        <h2 id="quest-image-title">Insert image</h2>
+        <p id="quest-image-target" class="field-hint"></p>
+        <div class="field"><label for="quest-image-file">Image file</label><input id="quest-image-file" type="file" accept="image/png,image/jpeg,image/gif,image/webp" required></div>
+        <div class="field"><label for="quest-image-alt">Image description</label><input id="quest-image-alt" type="text" maxlength="180" placeholder="For example: Triangle ABC with a right angle at B"></div>
+        <p class="field-hint">PNG, JPG, GIF or WebP · up to 8 MB. Images are also saved in Permanent Material. Removing an image from a question does not delete the file.</p>
+        <p id="quest-image-status" class="form-message" role="status" aria-live="polite"></p>
+        <div class="folder-dialog-actions"><button id="quest-image-cancel" class="button button-outline" type="button">Cancel</button><button id="quest-image-upload" class="button button-dark" type="submit">Upload and insert</button></div>
+      </form>
+    </dialog>
 
     <dialog class="folder-dialog" id="folder-dialog" aria-labelledby="folder-dialog-title">
       <form class="folder-dialog-card" id="folder-form">
