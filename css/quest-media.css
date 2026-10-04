@@ -1,0 +1,27 @@
+/* Additive styles for inline question/choice images and multiple answers. */
+.quest-rich { white-space: pre-wrap; overflow-wrap: anywhere; min-width: 0; }
+.quest-inline-image {
+  display: block;
+  max-width: 100%;
+  width: auto;
+  height: auto;
+  max-height: 32rem;
+  object-fit: contain;
+  object-position: left center;
+  margin: .75rem 0;
+  border-radius: .4rem;
+}
+.student-choice .quest-rich, .quest-preview-choice > div { min-width: 0; }
+.student-choice .quest-inline-image, .quest-preview-choice .quest-inline-image { max-height: 18rem; }
+.student-choice input[type="checkbox"] { appearance: auto; width: 1.15rem; height: 1.15rem; flex-shrink: 0; accent-color: var(--ink, #222); }
+.student-choice:has(input:checked) { outline: 2px solid var(--ink, #222); outline-offset: -2px; }
+.quest-option { display: grid; grid-template-columns: 2rem minmax(0, 1fr) auto; gap: .5rem; align-items: start; }
+.quest-option .quest-option-image { grid-column: 2; justify-self: start; padding: .45rem .8rem; min-height: 2.25rem; }
+.quest-image-dialog { width: min(34rem, calc(100vw - 2rem)); max-height: calc(100dvh - 2rem); overflow-y: auto; }
+.quest-image-dialog input[type="file"] { max-width: 100%; padding: .5rem 0; }
+.quest-image-error { display: block; color: #a32929; padding: .7rem; border: 1px solid currentColor; border-radius: .4rem; }
+@media (max-width: 480px) {
+  .quest-option { grid-template-columns: 1.5rem minmax(0, 1fr); }
+  .quest-option > button:not(.quest-option-image) { grid-column: 2; justify-self: end; }
+  .quest-toolbar { display: flex; flex-wrap: wrap; gap: .4rem; }
+}
