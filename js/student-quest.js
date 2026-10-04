@@ -1,3 +1,4 @@
+import { richText, isChoiceQuestion, validChoiceIndices } from "./quest-rich.js";
 import { collection, doc, getFirestore, onSnapshot, query, runTransaction, serverTimestamp, where } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 import { auth } from "./firebase.js";
 import { requireUser } from "./protected.js";
@@ -58,16 +59,18 @@ function existingDraft(id) {
 function makeDraft(question) {
   const answer = answers.get(question.id);
   return { type: question.type, text: answer?.type === "short" ? answer.text : "", choiceIndex: sameQuestionVersion(question, answer) ? answer.choiceIndex : -1,
+    choiceIndices: sameQuestionVersion(question, answer) && Array.isArray(answer.choiceIndices) ? [...answer.choiceIndices] : [],
     questionRevision: question.revision, baseRevision: answer?.revision || 0, dirty: false };
 }
 function getDraft(question) {
   let draft = existingDraft(question.id);
   if (!draft) { draft = makeDraft(question); drafts.set(question.id, draft); }
   if (draft.questionRevision !== question.revision || draft.type !== question.type) {
-    draft = { ...draft, type: question.type, questionRevision: question.revision, choiceIndex: -1,
+    draft = { ...draft, type: question.type, questionRevision: question.revision, choiceIndex: -1, choiceIndices: [],
       text: question.type === "short" && draft.type === "short" ? draft.text : "", dirty: true, questionChanged: true };
     persistDraft(question.id, draft);
   }
+  if (!Array.isArray(draft.choiceIndices)) draft.choiceIndices = [];
   return draft;
 }
 function message(text, success = false) {
@@ -75,33 +78,6 @@ function message(text, success = false) {
   $("student-answer-status").classList.toggle("success", success);
 }
 
-// Parse only the supported formatting. User text is never inserted as HTML.
-// Math is tokenized first, preserving underscores, stars, and line breaks in TeX.
-function richText(target, source) {
-  target.replaceChildren();
-  const tokens = /(\$\$[\s\S]*?\$\$|\\\([\s\S]*?\\\)|\\\[[\s\S]*?\\\]|\\begin\{equation\*?\}[\s\S]*?\\end\{equation\*?\}|\*\*[\s\S]+?\*\*|\*[^*\n]+?\*)/g;
-  let start = 0;
-  for (const match of source.matchAll(tokens)) {
-    target.append(document.createTextNode(source.slice(start, match.index)));
-    const token = match[0];
-    if (token.startsWith("**")) {
-      const strong = node("strong"); richText(strong, token.slice(2, -2)); target.append(strong);
-    } else if (token.startsWith("*")) {
-      const em = node("em"); richText(em, token.slice(1, -1)); target.append(em);
-    } else {
-      const span = node("span");
-      const displayMode = !token.startsWith("\\(");
-      const tex = token.startsWith("\\begin") ? token.replace(/^\\begin\{equation\*?\}/, "").replace(/\\end\{equation\*?\}$/, "") : token.slice(2, -2);
-      if (window.katex) {
-        try { window.katex.render(tex, span, { displayMode, throwOnError: true, trust: false, maxExpand: 1000, maxSize: 20 }); }
-        catch { span.textContent = token; span.className = "quest-math-error"; span.title = "Check this LaTeX expression."; }
-      } else { span.textContent = token; }
-      target.append(span);
-    }
-    start = match.index + token.length;
-  }
-  target.append(document.createTextNode(source.slice(start)));
-}
 function loadMath() {
   if (mathPromise || window.katex) return;
   $("student-quest-math").textContent = "Loading math…";
@@ -118,13 +94,20 @@ function loadMath() {
 }
 function renderAnswerInput(question, draft) {
   const host = $("student-answer-input"); host.replaceChildren();
-  if (question.type === "mcq") {
+  if (isChoiceQuestion(question.type)) {
+    const multiple = question.type === "multi";
+    host.append(node("p", multiple ? "Select all that apply. You may choose more than one answer." : "Choose one answer.", "field-hint"));
     question.options.forEach((option, index) => {
       const label = node("label", undefined, "student-choice");
-      const input = node("input"); input.type = "radio"; input.name = "questChoice"; input.value = String(index); input.required = true;
-      input.checked = draft.choiceIndex === index;
+      const input = node("input"); input.type = multiple ? "checkbox" : "radio"; input.name = "questChoice"; input.value = String(index); input.required = !multiple;
+      input.checked = multiple ? draft.choiceIndices.includes(index) : draft.choiceIndex === index;
       input.addEventListener("change", () => {
-        draft.choiceIndex = index; draft.dirty = true; persistDraft(question.id, draft); message("");
+        if (multiple) {
+          const selected = new Set(draft.choiceIndices);
+          if (input.checked) selected.add(index); else selected.delete(index);
+          draft.choiceIndices = [...selected].sort((a, b) => a - b);
+        } else draft.choiceIndex = index;
+        draft.dirty = true; persistDraft(question.id, draft); message("");
       });
       const content = node("span", undefined, "quest-rich"); richText(content, option);
       label.append(input, node("span", `${String.fromCharCode(65 + index)}.`, "student-choice-letter"), content);
@@ -172,7 +155,7 @@ function render() {
   const editing = !locked && (!saved || Boolean(existingDraft(question.id)));
   const draft = editing ? getDraft(question) : null;
   $("student-question-number").textContent = `Question ${index + 1}`;
-  $("student-question-state").textContent = locked ? (answer.mark === "right" ? "✓ Right · 1 point" : "× Wrong · 0 points") : saved ? "✓ Submitted" : question.type === "mcq" ? "Multiple choice" : "Short answer";
+  $("student-question-state").textContent = locked ? (answer.mark === "right" ? "✓ Right · 1 point" : "× Wrong · 0 points") : saved ? "✓ Submitted" : question.type === "mcq" ? "Choose one answer" : question.type === "multi" ? "Select all that apply" : "Short answer";
   richText($("student-question-prompt"), question.prompt);
   $("student-question-notice").textContent = draft?.questionChanged ? "Your teacher updated this question. Check your draft before submitting. Any saved answer and marks still count." : saved && !sameQuestionVersion(question, answer) ? "Your teacher updated this question after your submission. Your submitted answer and any marks still count." : "";
   $("student-answer-form").hidden = !editing;
@@ -187,7 +170,11 @@ function render() {
     $("student-answer-submit").textContent = saving ? "Submitting…" : saved ? "Save changes" : "Submit answer";
     $("student-answer-cancel").hidden = !saved;
   } else {
-    const value = answer.type === "mcq"
+    const value = answer.type === "multi"
+      ? (sameQuestionVersion(question, answer) && validChoiceIndices(answer.choiceIndices, question.options.length)
+        ? answer.choiceIndices.map(i => `${String.fromCharCode(65 + i)}. ${question.options[i]}`).join("\n\n")
+        : answer.text || "Multiple answers submitted (earlier question version)")
+      : answer.type === "mcq"
       ? (sameQuestionVersion(question, answer) ? `${String.fromCharCode(65 + answer.choiceIndex)}. ${question.options[answer.choiceIndex]}` : `Option ${String.fromCharCode(65 + answer.choiceIndex)} (earlier question version)`)
       : answer.text;
     richText($("student-answer-value"), value);
@@ -264,12 +251,18 @@ $("student-answer-form").addEventListener("submit", async event => {
   if (question.type === "mcq" && (!Number.isInteger(draft.choiceIndex) || draft.choiceIndex < 0 || draft.choiceIndex >= question.options.length)) {
     message("Choose an answer before submitting."); return;
   }
+  if (question.type === "multi" && !validChoiceIndices(draft.choiceIndices, question.options.length)) {
+    message("Select at least one answer before submitting."); return;
+  }
   if (question.type === "short" && (!text || text.length > 10000)) { message("Enter an answer of up to 10,000 characters."); return; }
   const token = generation, account = user, day = today;
   const reference = doc(db, "users", account.uid, "dailyQuestAnswers", question.id);
   const expectedRevision = draft.baseRevision;
   const data = { date: day, type: question.type, questionRevision: question.revision,
-    choiceIndex: question.type === "mcq" ? draft.choiceIndex : -1, text: question.type === "short" ? text : "" };
+    choiceIndex: question.type === "mcq" ? draft.choiceIndex : -1,
+    text: question.type === "short" ? text : question.type === "multi"
+      ? draft.choiceIndices.map(i => `${String.fromCharCode(65 + i)}. ${question.options[i]}`).join("\n\n") : "" };
+  if (question.type === "multi") data.choiceIndices = [...draft.choiceIndices].sort((a, b) => a - b);
   saving = true; message("Submitting…"); render();
   try {
     const saved = await runTransaction(db, async transaction => {
@@ -298,6 +291,7 @@ $("student-answer-form").addEventListener("submit", async event => {
     message(error.message === "quest/marked" ? "Your teacher has marked this answer. It is now locked and cannot be edited."
       : error.message === "quest/changed" ? "Your teacher changed this question. Review the updated question before submitting again."
       : error.message === "quest/answer-conflict" ? "Your answer was changed on another device. Copy any changes you want to keep, then cancel editing and reopen the saved answer."
+      : error.code === "permission-denied" ? "Your answer was not submitted. Your draft is still here. Ask your teacher to check permissions for this question type."
       : "Your answer was not submitted. Your draft is still here. Check your connection and try again.");
   } finally {
     saving = false;
