@@ -1,0 +1,21 @@
+/* Typed solutions: Master editor and student Records. */
+.quest-key-editor { margin: 2rem 0; padding: clamp(1rem, 3vw, 1.75rem); border: 1px solid var(--line); border-top: 3px solid var(--ink); }
+.quest-key-editor h2 { margin-bottom: .5rem; font-size: 1.4rem; letter-spacing: -.025em; }
+.quest-key-editor .eyebrow { color: var(--muted); }
+.quest-key-preview { margin-top: 1.25rem; border-top: 1px solid var(--line); }
+.quest-key-preview summary { cursor: pointer; padding: 1rem 0; font-weight: 600; }
+.quest-key-preview .quest-rich { padding: 1rem; background: var(--soft); }
+.quest-key-preview .katex-display, .record-key .katex-display { max-width: 100%; overflow-x: auto; }
+.record-key { margin-top: 1.5rem; border: 1px solid var(--line); border-left: 3px solid var(--ink); }
+.record-key-details > summary { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .5rem 1rem; padding: 1rem 1.1rem; cursor: pointer; font-weight: 700; list-style: none; }
+.record-key-details > summary::-webkit-details-marker { display: none; }
+.record-key-details > summary:hover { background: var(--soft); }
+.record-key-details > summary:focus-visible, .quest-key-preview > summary:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+.record-key-caption { font-weight: 400; color: var(--muted); font-size: .8rem; }
+.record-key-caption::after { content: " +"; }
+.record-key-details[open] .record-key-caption::after { content: " −"; }
+.record-key-body { padding: 1.1rem; border-top: 1px solid var(--line); }
+.record-key-body > .button { margin-top: .8rem; }
+.record-key-note { margin: 1.25rem 0 0; padding-top: .85rem; border-top: 1px solid var(--line); color: var(--muted); font-size: .75rem; }
+.record-key-locked { padding: 1rem 1.1rem; background: var(--soft); border-left-color: var(--line); }
+.record-key-locked h4 { font: inherit; font-weight: 600; margin: 0 0 .35rem; }
