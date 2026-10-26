@@ -1,5 +1,5 @@
 import { richText, isChoiceQuestion } from "./quest-rich.js";
-import { collection, doc, getFirestore, onSnapshot, runTransaction, serverTimestamp, setDoc } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+import { collection, doc, getDocFromServer, getFirestore, onSnapshot, runTransaction, serverTimestamp, setDoc } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 import { auth } from "./firebase.js";
 import { requireUser } from "./protected.js";
 
@@ -14,6 +14,8 @@ const form = $("quest-question-form");
 const prompt = $("quest-prompt");
 const type = $("quest-type");
 const date = $("quest-question-date");
+const answerKey = $("quest-answer-key");
+let keyReady = false, keyRevision = 0, keyBaseline = "", editorGeneration = 0, questionBaseline = "";
 let user, unsubscribe, items = [], loaded = false, saving = false, editingId = null, editingRevision = 0;
 let uploadingImage = false, imageInsertion = null;
 let baseline = "", activeText = prompt, selectedDate = "", today = bangkokDate(), mathPromise;
@@ -48,8 +50,39 @@ function status(message, error = false) {
   $("quest-status").classList.toggle("is-error", error);
 }
 function fields() {
-  return { date: date.value, type: type.value, prompt: prompt.value, options: [...$("quest-options").querySelectorAll("textarea")].map(el => el.value) };
+  return { date: date.value, type: type.value, prompt: prompt.value, options: [...$("quest-options").querySelectorAll("textarea")].map(el => el.value), answerKey: answerKey.value };
 }
+function questionFields(value) {
+  return { date: value.date, type: value.type, prompt: value.prompt.trim(), options: isChoiceQuestion(value.type) ? value.options.map(option => option.trim()) : [] };
+}
+function keyControls() {
+  answerKey.disabled = !keyReady;
+  document.querySelectorAll("[data-quest-key-format]").forEach(control => { control.disabled = !keyReady; });
+  $("quest-save").disabled = !keyReady || saving;
+}
+async function loadAnswerKey() {
+  const token = ++editorGeneration, id = editingId;
+  keyReady = false; keyControls();
+  $("quest-key-status").textContent = "Loading answer key…";
+  $("quest-key-retry").hidden = true;
+  try {
+    const snapshot = id ? await getDocFromServer(doc(db, "dailyQuestAnswerKeys", id)) : null;
+    if (token !== editorGeneration || editor.hidden || !user) return;
+    const data = snapshot?.exists() ? snapshot.data() : null;
+    keyRevision = data?.revision || 0; keyBaseline = data?.text || "";
+    answerKey.value = keyBaseline;
+    // Keep edits made to the question while its key was loading dirty.
+    baseline = JSON.stringify({ ...JSON.parse(baseline), answerKey: keyBaseline });
+    keyReady = true;
+    $("quest-key-status").textContent = ""; preview();
+  } catch (error) {
+    if (token !== editorGeneration) return;
+    console.error("Could not load answer key.", error);
+    $("quest-key-status").textContent = "Could not load the answer key. Check your connection and answer-key permissions, then retry. Saving is paused to protect the existing key.";
+    $("quest-key-retry").hidden = false;
+  } finally { if (token === editorGeneration) keyControls(); }
+}
+$("quest-key-retry").addEventListener("click", loadAnswerKey);
 function dirty() { return !editor.hidden && JSON.stringify(fields()) !== baseline; }
 function mayLeave() { return !saving && !uploadingImage && (!dirty() || window.confirm("Discard your unsaved question changes?")); }
 
@@ -72,6 +105,12 @@ function loadMath() {
   return mathPromise;
 }
 function preview() {
+  richText($("quest-key-preview"), answerKey.value || "Your answer key preview appears here.");
+  if (validDate(date.value)) {
+    const release = new Date(date.value + "T00:00:00+07:00"); release.setTime(+release + 86400000);
+    const label = new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Bangkok", day: "numeric", month: "long", year: "numeric" }).format(release);
+    $("quest-key-release").textContent = `Available to students: ${label} at 00:00 (Thailand time).`;
+  } else $("quest-key-release").textContent = "Choose a quest date to set the release time.";
   $("quest-options-section").hidden = !isChoiceQuestion(type.value);
   const container = $("quest-preview");
   container.replaceChildren();
@@ -123,11 +162,14 @@ function openEditor(day, item = null) {
   activeText = prompt; $("quest-editor-status").textContent = "";
   $("quest-editor-title").textContent = item ? "Edit question" : "Add question";
   $("material-page").hidden = true; editor.hidden = false;
-  baseline = JSON.stringify(fields()); preview(); loadMath();
+  answerKey.value = ""; keyRevision = 0; keyBaseline = "";
+  questionBaseline = JSON.stringify(questionFields(fields()));
+  baseline = JSON.stringify(fields()); loadAnswerKey(); preview(); loadMath();
   window.scrollTo(0, 0); prompt.focus();
 }
 function closeEditor(force = false) {
   if (!force && !mayLeave()) return;
+  ++editorGeneration;
   editor.hidden = true; $("material-page").hidden = false;
   browser.closest("details").open = true;
   renderDates(); browser.scrollIntoView({ block: "start" });
@@ -170,11 +212,11 @@ $("quest-cancel").addEventListener("click", () => closeEditor());
 prompt.addEventListener("focus", () => { activeText = prompt; });
 form.addEventListener("input", preview);
 type.addEventListener("change", () => { activeText = prompt; preview(); });
-document.querySelectorAll("[data-quest-format]").forEach(control => {
+document.querySelectorAll("[data-quest-format], [data-quest-key-format]").forEach(control => {
   control.addEventListener("click", () => {
     const formats = { bold: ["**", "**", "bold text"], italic: ["*", "*", "italic text"], inline: ["\\(", "\\)", "x^2"], display: ["\n$$\n", "\n$$\n", "x^2"] };
-    const [left, right, placeholder] = formats[control.dataset.questFormat];
-    const input = activeText?.isConnected ? activeText : prompt;
+    const [left, right, placeholder] = formats[control.dataset.questKeyFormat || control.dataset.questFormat];
+    const input = control.dataset.questKeyFormat ? answerKey : activeText?.isConnected ? activeText : prompt;
     const start = input.selectionStart, end = input.selectionEnd;
     const text = input.value.slice(start, end) || placeholder;
     if (input.value.length + left.length + right.length + (end === start ? text.length : 0) > input.maxLength) return;
@@ -184,10 +226,12 @@ document.querySelectorAll("[data-quest-format]").forEach(control => {
 });
 form.addEventListener("submit", async event => {
   event.preventDefault();
-  if (saving || uploadingImage || !user || !form.reportValidity()) return;
-  const value = fields(); value.prompt = value.prompt.trim();
-  value.options = isChoiceQuestion(value.type) ? value.options.map(option => option.trim()) : [];
+  if (saving || uploadingImage || !keyReady || !user || !form.reportValidity()) return;
+  const value = questionFields(fields()), keyText = answerKey.value.trim();
+  const questionChanged = !editingId || JSON.stringify(value) !== questionBaseline;
+  const keyChanged = keyText !== keyBaseline;
   const message = $("quest-editor-status");
+  if (keyText.length > 20000) { message.textContent = "The answer key can contain up to 20,000 characters."; return; }
   if (!validDate(value.date) || !value.prompt || value.prompt.length > 20000 || !["mcq", "multi", "short"].includes(value.type)) {
     message.textContent = "Enter a valid date and a question."; return;
   }
@@ -196,24 +240,31 @@ form.addEventListener("submit", async event => {
   }
   saving = true; $("quest-fields").disabled = true; $("quest-save").textContent = "Saving…"; message.textContent = "Saving question…";
   const reference = editingId ? doc(questions, editingId) : doc(questions);
+  const keyReference = doc(db, "dailyQuestAnswerKeys", reference.id);
+  const authorId = user.uid;
   try {
     await runTransaction(db, async transaction => {
+      // Read both revisions before any writes. Key text never enters the public question.
+      const keySnapshot = keyChanged ? await transaction.get(keyReference) : null;
+      if (keyChanged && (keySnapshot.exists() ? keySnapshot.data().revision : 0) !== keyRevision) throw new Error("quest/key-conflict");
       if (editingId) {
         const snapshot = await transaction.get(reference);
         if (!snapshot.exists() || (snapshot.data().revision || 0) !== editingRevision) throw new Error("quest/conflict");
-        transaction.update(reference, { ...value, revision: editingRevision + 1, updatedAt: serverTimestamp(), updatedBy: user.uid });
-      } else transaction.set(reference, { ...value, revision: 1, createdAt: serverTimestamp(), createdBy: user.uid, updatedAt: serverTimestamp(), updatedBy: user.uid });
+        if (questionChanged) transaction.update(reference, { ...value, revision: editingRevision + 1, updatedAt: serverTimestamp(), updatedBy: authorId });
+      } else transaction.set(reference, { ...value, revision: 1, createdAt: serverTimestamp(), createdBy: authorId, updatedAt: serverTimestamp(), updatedBy: authorId });
+      if (keyChanged) transaction.set(keyReference, { text: keyText, revision: keyRevision + 1, updatedAt: serverTimestamp(), updatedBy: authorId });
     });
     expandedDates.add(value.date); selectedDate = value.date;
     if (value.date < today) $("quest-past").parentElement.open = true;
-    baseline = JSON.stringify(fields()); closeEditor(true); status("Question saved.");
+    baseline = JSON.stringify(fields()); closeEditor(true); status("Question and answer key saved.");
   } catch (error) {
     console.error("Could not save Daily Quest.", error);
-    message.textContent = error.message === "quest/conflict"
+    message.textContent = error.message === "quest/key-conflict" ? "Another Master changed this answer key. Copy your draft, return to quests, and reopen the question before saving again."
+      : error.message === "quest/conflict"
       ? "Another Master changed this question. Copy your draft, return to quests, and reopen the latest question."
-      : error.code === "permission-denied" ? "Saving was denied. Your draft is still here. Ask the site owner to check permissions for this question type."
+      : error.code === "permission-denied" ? "Saving was denied. Your draft is still here. Ask the site owner to check Daily Quest and answer-key permissions."
       : "Could not save. Your draft is still here. Check your connection and Daily Quest Firestore rules, then try again.";
-  } finally { saving = false; $("quest-fields").disabled = false; $("quest-save").textContent = "Save question"; relabelOptions(); }
+  } finally { saving = false; $("quest-fields").disabled = false; $("quest-save").textContent = "Save question & answer key"; relabelOptions(); keyControls(); }
 });
 window.addEventListener("beforeunload", event => { if (dirty() || saving || uploadingImage) { event.preventDefault(); event.returnValue = ""; } });
 document.addEventListener("click", event => {
@@ -310,7 +361,7 @@ document.addEventListener("visibilitychange", () => { if (!document.hidden) refr
 setInterval(refreshDate, 30000);
 requireUser((account, role) => {
   unsubscribe?.();
-  if (role !== "Master") { user = null; loaded = false; editor.hidden = true; return; }
+  if (role !== "Master") { ++editorGeneration; user = null; loaded = false; editor.hidden = true; answerKey.value = ""; return; }
   user = account;
   $("quest-date").value = today; $("quest-date").min = today; renderDates();
   unsubscribe = onSnapshot(questions, snapshot => {
