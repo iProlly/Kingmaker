@@ -10,12 +10,13 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css">
   <link rel="stylesheet" href="css/quest-media.css">
+  <link rel="stylesheet" href="css/quest-answer-key.css">
 </head>
 <body>
   <div class="app-shell">
     <header class="site-header">
       <a class="brand" href="main.html" aria-label="Form dashboard">
-        <span class="brand-mark" aria-hidden="true">F</span><span>FORM</span>
+        <span class="brand-mark" aria-hidden="true">K</span><span>KINGMAKER</span>
       </a>
       <nav class="desktop-nav" aria-label="Main navigation">
         <a href="main.html">Today</a>
@@ -44,7 +45,7 @@
       <div class="manage-sections">
         <details class="manage-section">
           <summary>
-            <span class="manage-section-title">Permanent Material</span>
+            <span class="manage-section-title">Material</span>
           </summary>
           <div class="manage-section-body material-browser">
             <div class="material-toolbar">
@@ -109,7 +110,23 @@
           <p id="quest-format-help" class="field-hint">Select text, then choose a format. Use **bold**, *italic*, \( x^2 \) for inline math, or $$ x^2 $$ for an equation. Formatting also works in choices. Place the cursor between paragraphs, then use Insert image. Each choice also has an Image button. Move or delete the inserted ![description](image URL) text to move or remove a picture.</p>
           <section id="quest-options-section" aria-labelledby="quest-options-title"><h2 id="quest-options-title">Choices</h2><div id="quest-options"></div><button id="quest-add-option" class="button button-outline" type="button">+ Choice</button></section>
           <section class="quest-preview-panel" aria-labelledby="quest-preview-title"><h2 id="quest-preview-title">Preview</h2><p id="quest-math-status" class="field-hint" role="status"></p><div id="quest-preview" class="quest-rich"></div></section>
-          <div class="quest-editor-actions"><button class="button button-dark" id="quest-save" type="submit">Save question</button><button class="button button-outline" id="quest-cancel" type="button">Back to quests</button></div>
+          <section class="quest-key-editor" aria-labelledby="quest-key-title">
+            <p class="eyebrow">AFTER THE QUEST</p>
+            <h2 id="quest-key-title">Answer key</h2>
+            <p id="quest-key-help" class="field-hint">Type your answer or worked solution. Optional for every question type. Students can read it in Records from 00:00 the following day, Thailand time. You still mark answers manually.</p>
+            <div class="quest-toolbar" role="group" aria-label="Answer key formatting">
+              <button type="button" data-quest-key-format="bold"><strong>B</strong><span class="quest-sr">Bold</span></button>
+              <button type="button" data-quest-key-format="italic"><em>I</em><span class="quest-sr">Italic</span></button>
+              <button type="button" data-quest-key-format="inline">Inline math</button>
+              <button type="button" data-quest-key-format="display">Equation</button>
+            </div>
+            <div class="field"><label for="quest-answer-key">Your answer / explanation</label><textarea id="quest-answer-key" rows="6" maxlength="20000" aria-describedby="quest-key-help quest-key-release" placeholder="For example: The answer is B, because…"></textarea></div>
+            <p id="quest-key-release" class="field-hint"></p>
+            <p id="quest-key-status" class="management-status" role="status"></p>
+            <button id="quest-key-retry" class="button button-outline" type="button" hidden>Retry answer key</button>
+            <details class="quest-key-preview"><summary>Preview answer key</summary><div id="quest-key-preview" class="quest-rich"></div></details>
+          </section>
+          <div class="quest-editor-actions"><button class="button button-dark" id="quest-save" type="submit">Save question &amp; answer key</button><button class="button button-outline" id="quest-cancel" type="button">Back to quests</button></div>
         </fieldset>
         <p id="quest-editor-status" class="form-message" role="status" aria-live="polite"></p>
       </form>

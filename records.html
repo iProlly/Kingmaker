@@ -10,12 +10,14 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css">
   <link rel="stylesheet" href="css/records.css">
+  <link rel="stylesheet" href="css/quest-media.css">
+  <link rel="stylesheet" href="css/quest-answer-key.css">
 </head>
 <body>
   <div class="app-shell">
     <header class="site-header">
       <a class="brand" href="main.html" aria-label="Form dashboard">
-        <span class="brand-mark" aria-hidden="true">F</span><span>FORM</span>
+        <span class="brand-mark" aria-hidden="true">K</span><span>KINGMAKER</span>
       </a>
       <nav class="desktop-nav" aria-label="Main navigation">
         <a href="main.html">Today</a>
@@ -35,16 +37,16 @@
 
     <p id="records-access" class="manage-access-status" role="status">Checking access…</p>
     <main id="records-page" class="manage-page" hidden>
-      <header class="manage-heading"><p class="eyebrow">YOUR LEARNING HISTORY</p><h1>Records.</h1><p>Your practice, your progress.</p></header>
+      <header class="manage-heading"><p class="eyebrow">YOUR LEARNING HISTORY</p><h1>Records.</h1></header>
       <div class="records-tabs" role="group" aria-label="Choose record type"><button id="tab-quests" class="is-active" type="button" aria-pressed="true">Daily Quest</button><button id="tab-exams" type="button" aria-pressed="false">Exams</button></div>
       <section id="quest-history" aria-labelledby="history-title">
         <div class="record-toolbar"><div><p class="eyebrow">DAILY QUEST HISTORY</p><h2 id="history-title"></h2></div><div class="record-week-controls"><button id="history-prev" class="button button-outline" aria-label="Previous week">&lt;</button><button id="history-current" class="button button-outline">This week</button><button id="history-next" class="button button-outline" aria-label="Next week">&gt;</button></div></div>
-        <p class="field-hint record-legend">Open a day to review questions, your submitted answers and your teacher’s marks. Dates use Thailand time.</p>
+        <p class="field-hint record-legend">สามารถกดย้อนดูเควสประจำวันที่ผ่าน ๆ มาได้ (เฉลยของเควสประจำวันจะเปิดให้เห็นหลังจาก 00.00 น. ของวันนั้น)</p>
         <p id="history-status" class="management-status" role="status"></p><button id="history-retry" class="button button-outline" hidden>Retry history</button>
         <div id="history-days" class="history-days"></div>
       </section>
       <section id="exam-history" aria-labelledby="exam-history-title" hidden>
-        <h2 id="exam-history-title">Exam records</h2><p class="field-hint">Open an exam for your question-by-question marks, the paper and class statistics.</p>
+        <h2 id="exam-history-title">Exam records</h2><p class="field-hint">สามารถกดย้อนดูคะแนนของข้อสอบที่ผ่านมาได้ รวมถึงคะแนนรายข้อ และสถิติคะแนนของคนอื่น ๆ</p>
         <p id="history-exam-status" class="management-status" role="status"></p><button id="history-exam-retry" class="button button-outline" hidden>Retry exams</button><div id="history-exams" class="history-exams"></div>
       </section>
     </main>
